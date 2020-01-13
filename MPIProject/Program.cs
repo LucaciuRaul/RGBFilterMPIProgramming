@@ -69,15 +69,9 @@ namespace MPIProject
         }
         private static BufferedImage MPIMaster(RGBDisplayModel model, int mask)
         {
-            DateTime start = DateTime.Now;
-
             int n = Communicator.world.Size;
 
             ArrayList<BufferedImage> chunks = model.splitImage(model.getOriginalImage(), 100);
-
-            System.Console.WriteLine("Chunks:" + chunks.Count);
-            System.Console.WriteLine("n:" + n);
-
 
             for (int i = 1; i < n; i++)
             {
@@ -111,9 +105,6 @@ namespace MPIProject
 
             BufferedImage resultImage = new BufferedImage(model.getOriginalImage().getWidth(), model.getOriginalImage().getHeight(), model.getOriginalImage().getType());
             int howManyOnLine = (int)Math.Sqrt(results.ToArray().Length) ;
-            int k = 0;
-
-            System.Console.WriteLine("Results:" + results.ToArray().Length);
 
 
             for (int i = 0; i < howManyOnLine; i++)
@@ -123,9 +114,6 @@ namespace MPIProject
                     resultImage.createGraphics().drawImage(results.ElementAt(i * howManyOnLine + j), 100 * i, 100 * j, null);
                 }
             }
-
-            double time = (DateTime.Now - start).Milliseconds;
-            System.Console.WriteLine("MPI Image filter: " + "\n" + "TIME: " + time.ToString() + " milliseconds");
 
             return resultImage;
 
@@ -147,27 +135,37 @@ namespace MPIProject
                     model.setOriginalImage(bufferedImage);
 
                     //TODO: we have 12 core, but one core is the main one => one core remaining -> currently the program is done to use 13 cores !!!! BUG
-
+                    
                     int redMask = unchecked((int)0xFFFF0000);
                     int greenMask = unchecked((int)0xFF00FF00);
                     int blueMask = unchecked((int)0xFF0000FF);
 
-                    //BufferedImage redResult = MPIMaster(model, redMask);
-                    //Bitmap redResultBitmap = redResult.getBitmap();
-                    //redResultBitmap.Save("D:\\Anu3\\Sem1\\Programare paralela si distribuita\\Laborator\\MPIProject\\MPIProject\\imgRedResult.bmp", ImageFormat.Bmp);
+                    DateTime start = DateTime.Now;
 
-                    //BufferedImage greenResult = MPIMaster(model, greenMask);
-                    //Bitmap greenResultBitmap = greenResult.getBitmap();
-                    //greenResultBitmap.Save("D:\\Anu3\\Sem1\\Programare paralela si distribuita\\Laborator\\MPIProject\\MPIProject\\imgRedResult.bmp", ImageFormat.Bmp);
+                    BufferedImage redResult = MPIMaster(model, redMask);
+                    Bitmap redResultBitmap = redResult.getBitmap();
+                    redResultBitmap.Save("D:\\Anu3\\Sem1\\Programare paralela si distribuita\\Laborator\\MPIProject\\MPIProject\\imgRedResult.bmp", ImageFormat.Bmp);
+                    System.Console.WriteLine("Red filter DONE.");
+
+                    BufferedImage greenResult = MPIMaster(model, greenMask);
+                    Bitmap greenResultBitmap = greenResult.getBitmap();
+                    greenResultBitmap.Save("D:\\Anu3\\Sem1\\Programare paralela si distribuita\\Laborator\\MPIProject\\MPIProject\\imgGreenResult.bmp", ImageFormat.Bmp);
+                    System.Console.WriteLine("Green filter DONE.");
 
                     BufferedImage blueResult = MPIMaster(model, blueMask);
                     Bitmap blueResultBitmap = blueResult.getBitmap();
-                    blueResultBitmap.Save("D:\\Anu3\\Sem1\\Programare paralela si distribuita\\Laborator\\MPIProject\\MPIProject\\imgRedResult.bmp", ImageFormat.Bmp);
+                    blueResultBitmap.Save("D:\\Anu3\\Sem1\\Programare paralela si distribuita\\Laborator\\MPIProject\\MPIProject\\imgBlueResult.bmp", ImageFormat.Bmp);
+                    System.Console.WriteLine("Blue filter DONE.");
+
+                    double time = (DateTime.Now - start).Milliseconds;
+                    System.Console.WriteLine("MPI elapsed time: " + time.ToString() + " milliseconds.");
 
                     System.Console.WriteLine("DONE!");
                 }
                 else
                 {
+                    MPIWorker();
+                    MPIWorker();
                     MPIWorker();
                     //System.Console.WriteLine($"Hello from the {Communicator.world.Rank + 1}-th child!");
                 }
